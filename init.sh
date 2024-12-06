@@ -1,46 +1,42 @@
 #!/bin/bash
 
-echo "############################################################"
-echo "# Test des CSV-to-JSON Conversion Services                 #"
-echo "############################################################"
-
 # Variablen
 AWS_REGION="us-east-1"
 INPUT_BUCKET="inbucketcsvtojson"
 OUTPUT_BUCKET="outbucketcsvtojson"
-TEST_FILE="test.csv"
-EXPECTED_OUTPUT="test.json"
+LAMBDA_FUNCTION_NAME="Csv2JsonService"
 
-# Schritt 1: Hochladen der Testdatei
-echo "Schritt 1: Lade Testdatei ($TEST_FILE) in den Input-Bucket ($INPUT_BUCKET)..."
-aws s3 cp $TEST_FILE s3://$INPUT_BUCKET/
+echo "### Einrichtung des CSV-to-JSON Conversion Services ###"
 
-if [ $? -eq 0 ]; then
-    echo "Datei erfolgreich hochgeladen!"
-else
-    echo "Fehler beim Hochladen der Datei. Überprüfen Sie Ihre AWS CLI-Konfiguration."
-    exit 1
-fi
+# Schritt 1: S3-Buckets erstellen
+echo "Erstellen der S3-Buckets ($INPUT_BUCKET und $OUTPUT_BUCKET)..."
+aws s3 mb s3://$INPUT_BUCKET --region $AWS_REGION
+aws s3 mb s3://$OUTPUT_BUCKET --region $AWS_REGION
 
-# Schritt 2: Überprüfung des Output-Buckets
-echo "Schritt 2: Warten auf die generierte JSON-Datei im Output-Bucket ($OUTPUT_BUCKET)..."
-sleep 5  # Optional: Warten, bis die Lambda-Funktion abgeschlossen ist
+# Schritt 2: Lambda-Funktion erstellen
+echo "Erstellen der Lambda-Funktion ($LAMBDA_FUNCTION_NAME)..."
+zip function.zip lambda_function.py
+aws lambda create-function \
+    --function-name $LAMBDA_FUNCTION_NAME \
+    --runtime python3.9 \
+    --role arn:aws:iam::[ACCOUNT_ID]:role/LambdaExecutionRole \
+    --handler lambda_function.lambda_handler \
+    --zip-file fileb://function.zip \
+    --region $AWS_REGION
 
-aws s3 ls s3://$OUTPUT_BUCKET/ | grep $EXPECTED_OUTPUT
+# Schritt 3: Trigger (S3) hinzufügen
+echo "Hinzufügen eines S3-Triggers zur Lambda-Funktion..."
+aws lambda add-permission \
+    --function-name $LAMBDA_FUNCTION_NAME \
+    --action lambda:InvokeFunction \
+    --principal s3.amazonaws.com \
+    --statement-id s3invoke \
+    --source-arn arn:aws:s3:::$INPUT_BUCKET \
+    --region $AWS_REGION
 
-if [ $? -eq 0 ]; then
-    echo "JSON-Datei gefunden! Lade die Datei herunter..."
-    aws s3 cp s3://$OUTPUT_BUCKET/$EXPECTED_OUTPUT ./output.json
-    echo "Datei erfolgreich heruntergeladen. Prüfen Sie die Datei mit: cat output.json"
-else
-    echo "JSON-Datei wurde nicht gefunden. Überprüfen Sie die Logs der Lambda-Funktion."
-    exit 1
-fi
+aws s3api put-bucket-notification-configuration \
+    --bucket $INPUT_BUCKET \
+    --notification-configuration file://notification.json
 
-# Schritt 3: Logs überprüfen
-echo "Schritt 3: Anzeigen der Logs der Lambda-Funktion ($LAMBDA_FUNCTION_NAME)..."
-aws logs tail /aws/lambda/Csv2JsonService --region $AWS_REGION --follow
+echo "### Einrichtung abgeschlossen ###"
 
-echo "############################################################"
-echo "# Test abgeschlossen! Überprüfen Sie die JSON-Datei und Logs #"
-echo "############################################################"
