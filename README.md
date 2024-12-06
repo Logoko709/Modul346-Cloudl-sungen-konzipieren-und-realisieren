@@ -15,9 +15,9 @@ Ein vollständig implementierter AWS-basierter Service, der CSV-Dateien automati
 
 ## 🛠 **Ressourcen**
 - **Region:** `us-east-1`
-- **Input-Bucket:** `csv2json-input-bucket`
-- **Output-Bucket:** `csv2json-output-bucket`
-- **Lambda-Funktion:** `Csv2JsonService`
+- **Input-Bucket:** `inbucketcsvtojson`
+- **Output-Bucket:** `inbucketcsvtojson`
+- **Lambda-Funktion:** `Csv2JsonLambdaRole`
 
 ---
 
