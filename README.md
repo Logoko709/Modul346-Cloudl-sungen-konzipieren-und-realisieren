@@ -1,57 +1,144 @@
-# CSV to JSON Conversion Service
+# CSV to JSON Converter (AWS Lambda)
 
-Ein vollständig implementierter AWS-basierter Service, der CSV-Dateien automatisch in JSON-Dateien umwandelt. Der Service wurde entwickelt, um durch Hochladen einer CSV-Datei in einen Amazon S3-Bucket eine JSON-Datei zu generieren, die in einem separaten Bucket gespeichert wird.
+Dieses Projekt mit dem Namen "Modul346-Cloudlösungen-konzipieren-und-realisieren" wurde von Logoko709 erstellt. Es dient der automatischen Konvertierung von CSV-Dateien in JSON-Dateien, die in einem AWS S3-Bucket hochgeladen werden.
 
----
+------------------------------------------------------------
 
-## 📋 **Projektübersicht**
-- **Ziel:** Automatisierte Konvertierung von CSV zu JSON mithilfe von AWS Lambda und S3.
-- **Komponenten:**
-  - **Input-Bucket:** Speichert hochgeladene CSV-Dateien.
-  - **Output-Bucket:** Speichert die konvertierten JSON-Dateien.
-  - **AWS Lambda-Funktion:** Führt die Konvertierung durch, ausgelöst durch das Hochladen in den Input-Bucket.
+Voraussetzungen
+- AWS CLI: Installiert und konfiguriert mit Zugangsdaten (aws configure).
+- Python 3.x: Lokale Umgebung zur Ausführung der Funktion.
+- boto3: Installiere boto3, falls es nicht vorhanden ist:
+  pip install boto3
 
----
+------------------------------------------------------------
 
-## 🛠 **Ressourcen**
-- **Region:** `us-east-1`
-- **Input-Bucket:** `inbucketcsvtojson`
-- **Output-Bucket:** `inbucketcsvtojson`
-- **Lambda-Funktion:** `Csv2JsonLambdaRole`
+Projektstruktur
+/Modul346-Cloudlösungen-konzipieren-und-realisieren/
+├── lambda_function.py       # Hauptskript für die Lambda-Funktion
+├── requirements.txt         # Python-Abhängigkeiten
+├── example.csv              # Beispiel-CSV-Datei
+├── event.json               # Simuliertes Event für lokale Tests
+└── README.md                # Dokumentation
 
----
+------------------------------------------------------------
 
-## 🚀 **Testanleitung**
+Schritte zur Nutzung
 
-### **1. Voraussetzungen**
-- Zugriff auf AWS mit aktivierten Berechtigungen für S3 und Lambda.
-- AWS CLI ist installiert und konfiguriert (optional, falls CLI genutzt wird).
+1. Klone das Repository
+   git clone https://github.com/Logoko709/Modul346-Cloudlösungen-konzipieren-und-realisieren.git
+   cd Modul346-Cloudlösungen-konzipieren-und-realisieren
 
-### **2. Schritte zum Testen**
+2. Installiere die Abhängigkeiten
+   pip install -r requirements.txt
 
-#### **Schritt 1: Hochladen einer CSV-Datei**
-1. Öffnen Sie die AWS Management Console.
-2. Navigieren Sie zu **Amazon S3** und wählen Sie den Bucket `csv2json-input-bucket`.
-3. Laden Sie eine CSV-Datei hoch, z. B. `test.csv` (liegt im Repository bereit).
+3. Erstelle die S3-Buckets
+   Die Funktion erstellt automatisch die erforderlichen S3-Buckets, falls sie noch nicht existieren:
+   Input-Bucket: inputbucketcsvtojson
+   Output-Bucket: outbucketcsvtojson
 
-#### **Schritt 2: Ergebnis überprüfen**
-1. Öffnen Sie den Bucket `csv2json-output-bucket`.
-2. Suchen Sie nach der JSON-Datei mit dem gleichen Namen wie die hochgeladene CSV-Datei (z. B. `test.json`).
-3. Laden Sie die JSON-Datei herunter und überprüfen Sie den Inhalt.
+   Alternativ manuell:
+   aws s3 mb s3://inputbucketcsvtojson
+   aws s3 mb s3://outbucketcsvtojson
 
-#### **Schritt 3: Logs überprüfen (bei Fehlern)**
-1. Öffnen Sie die **AWS CloudWatch-Konsole**.
-2. Navigieren Sie zu den Logs der Lambda-Funktion: `/aws/lambda/Csv2JsonService`.
-3. Überprüfen Sie die Protokolle auf Fehler oder Warnungen.
+4. Lade eine CSV-Datei hoch
+   aws s3 cp example.csv s3://inputbucketcsvtojson/
 
----
+5. Lokale Simulation der Lambda-Funktion
 
-## 📁 **Beispieldateien**
-Im Ordner `test/` finden Sie:
-- `test.csv`: Eine Beispieldatei mit folgenden Daten:
-  ```csv
-  Name,Age,City
-  Alice,25,New York
-  Bob,30,San Francisco
-  Charlie,35,Los Angeles
+   Erstelle ein Event-JSON (event.json):
+   {
+       "Records": [
+           {
+               "s3": {
+                   "bucket": {
+                       "name": "inputbucketcsvtojson"
+                   },
+                   "object": {
+                       "key": "example.csv"
+                   }
+               }
+           }
+       ]
+   }
 
+   Führe die Funktion lokal aus:
+   python lambda_function.py
+
+6. Prüfe den Output
+   Nach der Verarbeitung erscheint die JSON-Datei im Output-Bucket (outbucketcsvtojson).
+   Lade sie herunter, um sie zu prüfen:
+   aws s3 cp s3://outbucketcsvtojson/example.json ./output.json
+
+------------------------------------------------------------
+
+Beispiel-CSV
+id,name,age,city
+1,John Doe,29,Zurich
+2,Jane Smith,34,Bern
+3,Bob Brown,23,Geneva
+
+Erwartetes JSON-Output:
+[
+    {
+        "id": "1",
+        "name": "John Doe",
+        "age": "29",
+        "city": "Zurich"
+    },
+    {
+        "id": "2",
+        "name": "Jane Smith",
+        "age": "34",
+        "city": "Bern"
+    },
+    {
+        "id": "3",
+        "name": "Bob Brown",
+        "age": "23",
+        "city": "Geneva"
+    }
+]
+
+------------------------------------------------------------
+
+Deployment in AWS
+
+1. Erstelle die Lambda-Funktion
+   Code zippen:
+   zip lambda_function.zip lambda_function.py
+
+   Lambda-Funktion erstellen:
+   aws lambda create-function \
+       --function-name CsvToJsonConverter \
+       --runtime python3.x \
+       --role <IAM_ROLE_ARN> \
+       --handler lambda_function.lambda_handler \
+       --zip-file fileb://lambda_function.zip
+
+2. Richte den S3-Trigger ein
+   - Öffne den S3-Bucket (inputbucketcsvtojson) in der AWS Management Console.
+   - Navigiere zu Properties > Event notifications.
+   - Erstelle eine Benachrichtigung:
+     Event Type: All object create events
+     Lambda Function: CsvToJsonConverter
+
+------------------------------------------------------------
+
+Fehlerbehebung
+
+1. AWS CLI ist nicht installiert
+   sudo apt update
+   sudo apt install awscli
+
+2. Berechtigungsfehler
+   Stelle sicher, dass die IAM-Rolle/Lambda-Funktion Zugriff auf S3 hat:
+   Erforderliche Berechtigungen:
+   s3:GetObject
+   s3:PutObject
+   s3:ListBucket
+
+------------------------------------------------------------
+
+Autor
+Name: Logoko709
+Projektname: Modul346-Cloudlösungen-konzipieren-und-realisieren
