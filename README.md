@@ -24,14 +24,18 @@ Projektstruktur
 
 Schritte zur Nutzung
 
-1. Klone das Repository
+1. Klone das Repository mit folgendem Befehl:
+   ```
    git clone https://github.com/Logoko709/Modul346-Cloudlösungen-konzipieren-und-realisieren.git
    cd Modul346-Cloudlösungen-konzipieren-und-realisieren
+   ```
 
-2. Installiere die Abhängigkeiten
+2. Installiere die Abhängigkeiten:
+   ```
    pip install -r requirements.txt
+   ```
 
-3. Erstelle die S3-Buckets
+4. Erstelle die S3-Buckets
    Die Funktion erstellt automatisch die erforderlichen S3-Buckets, falls sie noch nicht existieren:
    Input-Bucket: inputbucketcsvtojson
    Output-Bucket: outbucketcsvtojson
@@ -40,10 +44,10 @@ Schritte zur Nutzung
    aws s3 mb s3://inputbucketcsvtojson
    aws s3 mb s3://outbucketcsvtojson
 
-4. Lade eine CSV-Datei hoch
+5. Lade eine CSV-Datei hoch
    aws s3 cp example.csv s3://inputbucketcsvtojson/
 
-5. Lokale Simulation der Lambda-Funktion
+6. Lokale Simulation der Lambda-Funktion
 
    Erstelle ein Event-JSON (event.json):
    {
@@ -64,7 +68,7 @@ Schritte zur Nutzung
    Führe die Funktion lokal aus:
    python lambda_function.py
 
-6. Prüfe den Output
+7. Prüfe den Output
    Nach der Verarbeitung erscheint die JSON-Datei im Output-Bucket (outbucketcsvtojson).
    Lade sie herunter, um sie zu prüfen:
    aws s3 cp s3://outbucketcsvtojson/example.json ./output.json
