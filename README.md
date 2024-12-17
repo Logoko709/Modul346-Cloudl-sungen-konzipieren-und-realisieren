@@ -9,7 +9,7 @@ Voraussetzungen
 - Python 3.x: Lokale Umgebung zur Ausführung der Funktion.
 - boto3: Installiere boto3, falls es nicht vorhanden ist:
   pip install boto3
-
+       
 ------------------------------------------------------------
 
 Projektstruktur
