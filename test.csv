@@ -1,5 +1,11 @@
-id,name,age,city
-1,John Doe,29,Zurich
-2,Jane Smith,34,Bern
-3,Bob Brown,23,Geneva
-4,Alice White,28,Basel
+id,name,age,city,country,profession,email,salary
+1,John Doe,29,Zurich,Switzerland,Engineer,john.doe@example.com,75000
+2,Jane Smith,34,Bern,Switzerland,Doctor,jane.smith@example.com,90000
+3,Bob Brown,23,Geneva,Switzerland,Teacher,bob.brown@example.com,50000
+4,Alice White,28,Basel,Switzerland,Designer,alice.white@example.com,62000
+5,Chris Green,41,Luzern,Switzerland,Manager,chris.green@example.com,110000
+6,Mary Black,30,Zug,Switzerland,Journalist,mary.black@example.com,65000
+7,Peter Gray,27,Lausanne,Switzerland,Data Analyst,peter.gray@example.com,80000
+8,Susan Blue,32,Fribourg,Switzerland,Architect,susan.blue@example.com,95000
+9,David Gold,36,Winterthur,Switzerland,Librarian,david.gold@example.com,47000
+10,Laura Silver,29,St. Gallen,Switzerland,Marketing Specialist,laura.silver@example.com,71000
